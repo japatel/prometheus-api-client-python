@@ -13,6 +13,7 @@ dateparser = "*"
 pandas = ">=1.0.0"
 matplotlib = "*"
 numpy = "*"
+prometheus-api-client = {file = "file:///Users/japatel/servicehealth/prometheus-api-client-python/dist/prometheus_api_client-0.3.1-py3-none-any.whl"}
 
 [requires]
 python_version = "3.6"

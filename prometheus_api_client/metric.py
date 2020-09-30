@@ -59,12 +59,12 @@ class Metric:
             self.label_config = metric.label_config
             self.metric_values = metric.metric_values
             self.oldest_data_datetime = oldest_data_datetime
-        else:
+        elif "metric" in metric:
             self.metric_name = metric["metric"]["__name__"]
             self.label_config = deepcopy(metric["metric"])
             self.oldest_data_datetime = oldest_data_datetime
             del self.label_config["__name__"]
-
+        
             # if it is a single value metric change key name
             if "value" in metric:
                 metric["values"] = [metric["value"]]
@@ -73,10 +73,22 @@ class Metric:
                 pandas.to_numeric, errors="raise"
             )
             self.metric_values["ds"] = pandas.to_datetime(self.metric_values["ds"], unit="s")
+        else:
+            self.metric_name = metric["__name__"]
+            self.label_config = deepcopy(metric)
+            self.oldest_data_datetime = oldest_data_datetime
+            del self.label_config["__name__"]
+
+            self.metric_values = pandas.DataFrame(columns=["ds", "y"]).apply(
+                pandas.to_numeric, errors="raise"
+            )
+            self.metric_values["ds"] = pandas.to_datetime(self.metric_values["ds"], unit="s")
+
 
         # Set the metric start time and the metric end time
-        self.start_time = self.metric_values.iloc[0, 0]
-        self.end_time = self.metric_values.iloc[-1, 0]
+        if not self.metric_values.empty:
+            self.start_time = self.metric_values.iloc[0, 0]
+            self.end_time = self.metric_values.iloc[-1, 0]
 
     def __eq__(self, other):
         """

@@ -122,6 +122,42 @@ class PrometheusConnect:
         return data
 
     @retry(stop_max_attempt_number=MAX_REQUEST_RETRIES, wait_fixed=CONNECTION_RETRY_WAIT_TIME)
+    def get_metric_series(
+            self, metric_name: str, params: dict = None
+    ):
+        r"""
+        A method to get the metric series for the specified metric.
+
+        :param metric_name: (str) The name of the metric
+        :returns: (list) A list of metric series for the specified metric
+        :raises:
+            (RequestException) Raises an exception in case of a connection error
+            (PrometheusApiClientException) Raises in case of non 200 response status code
+
+        Example Usage:
+            ``prom = PrometheusConnect()``
+
+            ``prom.get_metric_series(metric_name='up')``
+        """
+        request_data = {"match[]" : metric_name}
+
+        # using the query API to post raw data
+        response = requests.post(
+            "{0}/api/v1/series?".format(self.url),
+            data=request_data,
+            verify=self.ssl_verification,
+            headers=self.headers,
+        )
+
+        if response.status_code == 200:
+            data = response.json()["data"]
+        else:
+            raise PrometheusApiClientException(
+                "HTTP Status Code {} ({})".format(response.status_code, response.content)
+            )
+        return data
+
+    @retry(stop_max_attempt_number=MAX_REQUEST_RETRIES, wait_fixed=CONNECTION_RETRY_WAIT_TIME)
     def get_metric_range_data(
             self,
             metric_name: str,
